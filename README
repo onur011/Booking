@@ -1,0 +1,172 @@
+	Veis Onur Sener
+	
+	Problema Booking
+	
+	Am utilizat o baza de date relationala sqlite3 pentru a stoca datele legate
+de sporturi.
+
+	Baza de date prezinta o tabela sports care contine urmatoarele campuri:
+id, nume, country, location, cost, start_date, end_date.
+
+	CREATE TABLE sports (
+		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		country TEXT NOT NULL,
+		location TEXT NOT NULL,
+		cost INTEGER NOT NULL,
+		start_date DATE NOT NULL,
+		end_date DATE NOT NULL);
+		
+	start_date si end_date stocheza datele sub forma "YYYY-MM-DD".
+		
+	Pentru a putea lucra cu baza de data prin intermediul aplicatiei am utilizat
+sqlite-JDBC.
+
+	IMPORTANT!!! - In fisierul  Database.java, in constructorul privat al clasei,
+path reprezinta calea catre baza de date. 
+
+	Clasa Database este de tip Singleton, astfel conexiunea cu baza de date se
+realizeaza doar o singura data.
+
+	Controller:
+	
+######## Metoda de adaugare sport
+		
+		Se verifica daca se respecta formatul JSON de adaugare sport.
+		
+		Se verifica daca perioada introdusa este corecta
+		
+		Se face o selectie pe baza de date, verificandu-se daca exista
+	deja un sport cu acelasi nume, tara, locatie si perioada care sa
+	intersecteze perioada sportului care se doreste sa fie adaugat.
+	
+		Daca exista, se anunta ca adaugarea a esuat si se afiseaza
+	inregistrarile cu care se afla in conflict.
+	
+		Daca nu exista, se adauga sportul in baza de date, anuntandu-se
+	ca s-a efectuat cu succes.
+	
+		Am considerat ca este normal sa existe mai multe sporturi cu
+	acelasi nume, tara si locatie, atata timp cat perioadele lor
+	nu se intersecteaza. 
+	
+	--- Exemplu adaugare postman:
+		
+		POST http://localhost:8080/add
+		
+		{"name": "Schi",
+		"country": "Romania",
+		"location" : "Poiana",
+		"cost" :  190 ,
+		"start_date" : "2022-01-04",
+		"end_date" : "2022-03-21"}
+		 
+		
+######## Metoda de stergere sport
+	
+		Se verifica daca se respecta formatul JSON de stergere sport.
+		
+		Se cauta sportul in baza de date.
+		
+		Daca acesta exista, acesta este sters din baza de date si 
+	se anunta ca stergerea s-a efectuat.
+	
+		Daca acesta nu exista in baza de date, se anunta faptul ca
+	stergerea nu a fost efectuata.
+	
+	--- Exemplu stergere postman:
+	
+		POST http://localhost:8080/delete
+		
+		{"name": "Schi",
+		"country": "Romania",
+		"location" : "Poiana",
+		"cost" :  190 ,
+		"start_date" : "2022-01-04",
+		"end_date" : "2022-03-21"}
+		
+		
+######## Metoda de selectie sporturi
+
+		Se verifca daca intervalul costului este corect, in cazul
+	in care acesta exista.
+	
+		Se verifica daca perioada este corecta, in cazul in care
+	aceasta exista
+	
+		Daca nu s-a introdus niciun parametru, atunci se afiseaza
+	toate sporturile din baza de date.
+	
+		Daca exista parametrii introdusi, se face o selectie
+	dupa fiecare parametru.
+	
+		Numele, tara si locatie sunt liste, deci se poate face
+	selectia dupa mai multe nume, tari si locatii.
+	
+		Costul sportului trebuie sa se regaeasca in intervalul costului,
+	iar perioada sportului trebuie sa se intersecteze cu perioada
+	pe care s-a facut selectie, in cazul in care intervalu costului
+	si perioada de selectie au fost specificati.
+	
+		Se afiseaza rezultatul selectiei.
+		
+		Daca nu exista niciun sport, se anunta acest lucru.
+		
+	--- Exemplu selectie Postman:
+	
+		GET http://localhost:8080/select
+		
+		Va returna toate sporturile din tabela.
+		
+		
+		
+		GET http://localhost:8080/select?country=Romania,Austria&cost_min=100
+		
+		Va returna toate sporturile din tara Romania si Austria, care au
+		costul mai mare de 100
+		
+		
+		
+		GET http://localhost:8080/select?name=ATV,Schi&start_date=2020-01-01
+		
+		Va returna toate sporturile ATV si Schi care au perioada de desfasurare
+		dupa 2020-01-01
+		
+		
+######## Metoda de modificare
+
+		Se verifica daca se respecta formatul JSON de modificare sport.(trebuie
+	ca toate campurile sportului care se doreste modificat sa fie specificate,
+	si sa se specifice cel putin un camp care se modifica).
+	
+		Se verifica daca perioada introdusa este valida, daca ea exista.
+		
+		Se face o selectie pentru a se observa daca sportul exista in tabela.
+		
+		Daca exista, se verifica daca schimband valorile campurilor, sportul va
+	intra in conflict cu alte sporturi.
+		
+			Daca intra in conflic, modificarea esueaza si se afiseaza conflictele
+		
+			Daca nu intra in conflict, se face modificarea campurilor specificate si 
+			se anunta ca s-a modificat cu succes.
+		
+		Daca nu exista, se anunta ca modificarea nu s-a efectuat.
+
+	--- Exemplu modificare 
+	
+		POST http://localhost:8080/update
+		
+		{"name": "Schi",
+		"country": "Romania",
+		"location" : "Poiana",
+		"cost" :  190 ,
+		"start_date" : "2021-10-02",
+		"end_date" : "2021-12-25",
+		"new_start_date" : "2021-11-01",
+		"new_cost" : 175}
+		
+		 Se modifica start_date si cost, daca nu instra in conflict cu alt sport
+		
+		
+		
